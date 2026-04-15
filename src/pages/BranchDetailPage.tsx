@@ -8,11 +8,13 @@ import {
     Clock,
     Users,
     CheckCircle,
-    Loader2,
     ArrowLeft,
     TicketCheck,
     Activity,
+    Accessibility,
 } from 'lucide-react';
+import { toast } from '../components/Feedback';
+import { TurkcellSpinner } from '../components/TurkcellSpinner';
 
 interface BranchDetail extends Branch {
     workingHours: string;
@@ -36,6 +38,7 @@ export const BranchDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [selectedService, setSelectedService] = useState<string | null>(null);
+    const [isPriority, setIsPriority] = useState(false);
     const [joinSuccess, setJoinSuccess] = useState(false);
     const [ticketId, setTicketId] = useState<string | null>(null);
 
@@ -60,15 +63,24 @@ export const BranchDetailPage = () => {
     // Sıraya katıl (POST /queue/join)
     const joinMutation = useMutation({
         mutationFn: async () => {
-            const res = await api.post('/queue/join', {
-                branchId: id,
-                serviceTypeId: selectedService,
-            });
-            return res.data;
+            const loadingToastId = toast.loading('Biletiniz Hazırlanıyor...');
+            try {
+                const res = await api.post('/queue/join', {
+                    branchId: id,
+                    serviceTypeId: selectedService,
+                    isPriority, // priority flag for backend to handle visually or physically
+                });
+                toast.dismiss(loadingToastId);
+                return res.data;
+            } catch (err) {
+                toast.dismiss(loadingToastId);
+                throw err;
+            }
         },
         onSuccess: (data) => {
             setTicketId(data.id);
             setJoinSuccess(true);
+            toast.success(`Sıra Alındı! Numaranız: ${data.ticketNumber || data.id}`);
         },
     });
 
@@ -77,8 +89,8 @@ export const BranchDetailPage = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen gap-3 bg-gray-50">
-                <Loader2 className="animate-spin text-[#002855]" size={40} />
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] gap-3 bg-gray-50">
+                <TurkcellSpinner size={48} />
                 <p className="text-[#002855] font-semibold">Şube bilgileri yükleniyor...</p>
             </div>
         );
@@ -181,9 +193,27 @@ export const BranchDetailPage = () => {
                 </div>
             </div>
 
+            {/* Engelsiz Erişim Toggle (Müşteri Önceliği) */}
+            <div className="px-5 mb-6 animate-fade-up">
+                <div onClick={() => setIsPriority(!isPriority)} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-3xl shadow-sm cursor-pointer hover:border-blue-200 transition-colors">
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 bg-blue-50 text-[#002855] rounded-2xl">
+                            <Accessibility size={20} />
+                        </div>
+                        <div>
+                            <h4 className="font-black text-[#002855] text-sm">Engelsiz Erişim</h4>
+                            <p className="text-xs font-bold text-gray-400">Yaşlı veya engelli müşterilerimiz için</p>
+                        </div>
+                    </div>
+                    <div className={`w-12 h-6 rounded-full flex items-center p-1 transition-colors ${isPriority ? 'bg-[#ffcc00]' : 'bg-gray-200'}`}>
+                        <div className={`w-4 h-4 bg-white rounded-full transition-transform ${isPriority ? 'translate-x-6' : 'translate-x-0'} border border-black/10 shadow-sm`} />
+                    </div>
+                </div>
+            </div>
+
             {/* Sıraya Katıl Butonu */}
             <div className="px-5 pb-10">
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-4 text-sm text-[#002855]">
+                <div className="bg-blue-50 border border-blue-100 rounded-3xl p-4 mb-4 text-sm text-[#002855]">
                     <strong>Tahmini Bekleme:</strong>{' '}
                     <span className="font-black">
                         ~{waitTime} dakika
@@ -196,11 +226,11 @@ export const BranchDetailPage = () => {
                 <button
                     onClick={() => joinMutation.mutate()}
                     disabled={!selectedService || joinMutation.isPending}
-                    className="w-full bg-[#ffcc00] text-[#002855] font-black text-lg py-5 rounded-3xl shadow-lg hover:bg-yellow-400 transition-all active:scale-95 disabled:opacity-40 disabled:grayscale flex items-center justify-center gap-3"
+                    className="w-full bg-[#ffcc00] text-[#002855] font-black text-lg py-5 rounded-3xl shadow-lg hover:bg-yellow-400 transition-all active:scale-[0.98] disabled:opacity-40 disabled:grayscale flex items-center justify-center gap-3"
                 >
                     {joinMutation.isPending ? (
                         <>
-                            <Loader2 size={22} className="animate-spin" />
+                            <TurkcellSpinner size={22} />
                             Sıraya Alınıyor...
                         </>
                     ) : (

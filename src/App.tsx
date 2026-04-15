@@ -6,7 +6,10 @@ import { BranchListPage } from './pages/BranchListPage';
 import { BranchDetailPage } from './pages/BranchDetailPage';
 import { MyTicketPage } from './pages/TicketStatusPage';
 import { StaffPanelPage } from './pages/StaffPanelPage';
+import { InstitutionSelectionPage } from './pages/InstitutionSelectionPage';
+import { PastTicketsPage } from './pages/PastTicketsPage';
 import { Navbar } from './components/Navbar';
+import { FeedbackToaster } from './components/Feedback';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +36,7 @@ const StaffRoute = ({ children }: { children: ReactNode }) => {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <FeedbackToaster />
       <Router>
         <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
           <Navbar />
@@ -46,7 +50,23 @@ function App() {
                 path="/"
                 element={
                   <ProtectedRoute>
+                    <InstitutionSelectionPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/branches"
+                element={
+                  <ProtectedRoute>
                     <BranchListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/history"
+                element={
+                  <ProtectedRoute>
+                    <PastTicketsPage />
                   </ProtectedRoute>
                 }
               />

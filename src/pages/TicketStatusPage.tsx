@@ -2,224 +2,160 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axiosInstance';
 import { type QueueTicket } from '../types';
-import {
-    Loader2,
-    ArrowLeft,
-    Clock,
-    Users,
-    Bell,
-    CheckCircle2,
-    XCircle,
-    Wrench,
-} from 'lucide-react';
+import { Loader2, ArrowLeft, Clock, Users, Bell, CheckCircle2, TicketX, Zap, TicketSlash } from 'lucide-react';
 import type { ElementType } from 'react';
 
-// ─── Status UI konfigürasyonu ──────────────────────────────────────────────
-type StatusConfig = {
-    label: string;
-    color: string;
-    bg: string;
-    border: string;
-    Icon: ElementType;
-    pulse: boolean;
-};
+type StatusConfig = { label: string; color: string; bg: string; border: string; Icon: ElementType; pulseMode: boolean };
 
 const STATUS_CONFIG: Record<QueueTicket['status'], StatusConfig> = {
-    WAITING: {
-        label: 'Bekliyorsunuz',
-        color: 'text-blue-700',
-        bg: 'bg-blue-50',
-        border: 'border-blue-200',
-        Icon: Clock,
-        pulse: true,
-    },
-    CALLED: {
-        label: 'Sıranız Geldi! Gişeye Gelin',
-        color: 'text-orange-700',
-        bg: 'bg-orange-50',
-        border: 'border-orange-300',
-        Icon: Bell,
-        pulse: true,
-    },
-    IN_SERVICE: {
-        label: 'İşleminiz Yapılıyor',
-        color: 'text-purple-700',
-        bg: 'bg-purple-50',
-        border: 'border-purple-200',
-        Icon: Wrench,
-        pulse: false,
-    },
-    DONE: {
-        label: 'İşlem Tamamlandı',
-        color: 'text-green-700',
-        bg: 'bg-green-50',
-        border: 'border-green-200',
-        Icon: CheckCircle2,
-        pulse: false,
-    },
-    NO_SHOW: {
-        label: 'Gelmedi Olarak İşaretlendi',
-        color: 'text-red-700',
-        bg: 'bg-red-50',
-        border: 'border-red-200',
-        Icon: XCircle,
-        pulse: false,
-    },
+    WAITING: { label: 'Bekliyorsunuz', color: 'text-darkblue', bg: 'bg-turkcell/20', border: 'border-turkcell', Icon: Clock, pulseMode: false },
+    CALLED: { label: 'Sıranız Geldi!', color: 'text-white', bg: 'bg-emerald-500', border: 'border-emerald-600', Icon: Bell, pulseMode: true },
+    IN_SERVICE: { label: 'İşleminiz Yapılıyor', color: 'text-indigo-700', bg: 'bg-indigo-50', border: 'border-indigo-200', Icon: Zap, pulseMode: true },
+    DONE: { label: 'İşlem Tamamlandı', color: 'text-slate-500', bg: 'bg-slate-100', border: 'border-slate-300', Icon: CheckCircle2, pulseMode: false },
+    NO_SHOW: { label: 'Müşteri Gelmedi', color: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-200', Icon: TicketX, pulseMode: false },
 };
 
-// ─── Component ──────────────────────────────────────────────────────────────
 export const MyTicketPage = () => {
     const { ticketId } = useParams<{ ticketId: string }>();
     const navigate = useNavigate();
 
-    const isFinalStatus = (status?: QueueTicket['status']) =>
-        status === 'DONE' || status === 'NO_SHOW';
+    const isFinalStatus = (status?: QueueTicket['status']) => status === 'DONE' || status === 'NO_SHOW';
 
-    // 3 saniyelik polling — Gereksinim 4.x
-    // refetchInterval: false ile final state'te otomatik durur (useEffect'e gerek yok)
     const { data: ticket, isLoading, isError } = useQuery<QueueTicket>({
         queryKey: ['my-ticket', ticketId],
         queryFn: async () => {
             const res = await api.get(`/queue/ticket/${ticketId}`);
             return res.data;
         },
-        refetchInterval: (query) =>
-            isFinalStatus(query.state.data?.status) ? false : 3000,
+        refetchInterval: (query) => isFinalStatus(query.state.data?.status) ? false : 3000,
         refetchIntervalInBackground: true,
     });
 
-    // ── Loading ──
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen gap-3 bg-gray-50">
-                <Loader2 className="animate-spin text-[#002855]" size={40} />
-                <p className="text-[#002855] font-semibold">Bilet bilgisi alınıyor...</p>
+            <div className="min-h-[calc(100vh-64px)] bg-slate-50 flex flex-col relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-72 bg-darkblue rounded-b-[48px] z-0" />
+                <div className="relative z-10 p-5 flex-1 flex flex-col max-w-md mx-auto w-full pt-8 animate-pulse">
+                    <div className="h-4 bg-white/20 rounded w-24 mb-6" />
+                    
+                    <div className="bg-white rounded-[2.5rem] p-8 shadow-tc-xl border-4 border-white text-center flex flex-col items-center gap-6 relative overflow-hidden h-[340px]">
+                        <div className="h-3 bg-darkblue/5 rounded w-24 mb-2" />
+                        <div className="h-20 bg-darkblue/10 rounded w-48 mb-3" />
+                        <div className="h-6 bg-darkblue/5 rounded-full w-32 mb-8" />
+                        
+                        <div className="w-full mt-auto h-14 bg-darkblue/5 rounded-2xl" />
+                    </div>
+
+                    <div className="mt-8 flex gap-4">
+                        <div className="bg-white rounded-3xl h-32 flex-1 border border-slate-100 flex flex-col items-center justify-center gap-2">
+                             <div className="w-8 h-8 rounded-full bg-darkblue/10" />
+                             <div className="w-16 h-8 bg-darkblue/10 rounded" />
+                        </div>
+                        <div className="bg-white rounded-3xl h-32 flex-1 border border-slate-100 flex flex-col items-center justify-center gap-2">
+                             <div className="w-8 h-8 rounded-full bg-darkblue/10" />
+                             <div className="w-16 h-8 bg-darkblue/10 rounded" />
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
 
-    // ── Error / Not Found ──
     if (isError || !ticket) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-gray-50 p-6 text-center">
-                <XCircle size={64} className="text-red-400" />
-                <p className="text-red-600 font-bold text-lg">Bilet bulunamadı.</p>
-                <p className="text-gray-400 text-sm">Bu bilet mevcut değil veya süresi dolmuş.</p>
-                <button
-                    onClick={() => navigate('/')}
-                    className="mt-2 px-6 py-3 bg-[#002855] text-white font-bold rounded-2xl hover:bg-[#003a7a] transition-colors"
-                >
-                    Ana Sayfaya Dön
-                </button>
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] gap-4 bg-slate-50 p-6 text-center animate-fade-up">
+                <div className="p-6 bg-darkblue/5 rounded-full mb-2">
+                    <TicketSlash size={56} className="text-darkblue" strokeWidth={1.5} />
+                </div>
+                <div>
+                    <h2 className="text-slate-600 font-black text-xl mb-1">Henüz bir sıraya girmediniz.</h2>
+                    <p className="text-slate-500 font-medium text-sm">Geleceği birlikte kodlayalım!</p>
+                </div>
+                <button onClick={() => navigate('/')} className="mt-4 px-8 py-3 bg-darkblue text-white font-bold rounded-xl hover:bg-[#003a7a] transition-all shadow-md">Ana Sayfaya Dön</button>
             </div>
         );
     }
 
     const cfg = STATUS_CONFIG[ticket.status];
-    const { Icon } = cfg;
     const finalState = isFinalStatus(ticket.status);
 
-    // ── Main View ──
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            {/* Header */}
-            <div className="bg-[#002855] text-white px-6 pt-6 pb-14">
-                <button
-                    onClick={() => navigate('/')}
-                    className="flex items-center gap-2 text-blue-200 hover:text-white transition-colors mb-4 text-sm"
-                >
-                    <ArrowLeft size={16} /> Ana Sayfa
+        <div className="min-h-[calc(100vh-64px)] bg-slate-50 flex flex-col relative overflow-hidden">
+            
+            {/* Dark Header Background extended downwards */}
+            <div className="absolute top-0 left-0 right-0 h-72 bg-darkblue rounded-b-[48px] z-0" />
+
+            <div className="relative z-10 p-5 flex-1 flex flex-col max-w-md mx-auto w-full pt-8">
+                {/* Back Button */}
+                <button onClick={() => navigate('/')} className="flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-6 text-sm font-bold w-fit">
+                    <ArrowLeft size={18} strokeWidth={3} /> Sıra Listesi
                 </button>
-                <h1 className="text-xl font-black tracking-tight">Bilet Takibi</h1>
-                <p className="text-blue-200 text-sm mt-0.5">
-                    {finalState
-                        ? 'İşleminiz sonuçlandı.'
-                        : 'Durum her 3 saniyede otomatik güncelleniyor.'}
-                </p>
-            </div>
 
-            {/* Bilet Kartı — header'ın altına bindirilmiş */}
-            <div className="mx-4 -mt-10">
-                <div className={`bg-white rounded-[40px] p-8 shadow-2xl border-4 ${cfg.border} text-center space-y-3`}>
-                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Bilet Numaranız</p>
-                    <h2 className="text-7xl font-black text-[#002855] leading-none">{ticket.ticketNumber}</h2>
-                    <p className="text-sm text-gray-500 font-medium">{ticket.serviceType}</p>
+                {/* The Ticket Card */}
+                <div className={`bg-white rounded-[2.5rem] p-8 shadow-tc-xl border-4 ${ticket.status === 'CALLED' ? 'border-emerald-500 shadow-emerald-500/20' : 'border-white'} text-center flex flex-col items-center gap-6 animate-bounce-in relative overflow-hidden`}>
+                    
+                    {/* Punch holes for realistic ticket effect */}
+                    <div className="absolute -left-4 top-[60%] w-8 h-8 rounded-full bg-slate-50 border-r-2 border-slate-100 z-20" />
+                    <div className="absolute -right-4 top-[60%] w-8 h-8 rounded-full bg-slate-50 border-l-2 border-slate-100 z-20" />
+                    
+                    {/* Dashed line */}
+                    <div className="absolute left-6 right-6 top-[60%] border-t-[3px] border-dashed border-slate-200 z-10" />
 
-                    {/* Durum badge */}
-                    <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-full ${cfg.bg} ${cfg.color} font-bold text-sm`}>
-                        {cfg.pulse && (
-                            <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
-                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${ticket.status === 'CALLED' ? 'bg-orange-400' : 'bg-blue-400'}`} />
-                                <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${ticket.status === 'CALLED' ? 'bg-orange-500' : 'bg-blue-500'}`} />
-                            </span>
-                        )}
-                        <Icon size={16} />
-                        {cfg.label}
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-2">QR Bilet No</p>
+                        <h2 className="text-7xl sm:text-8xl font-black text-darkblue tracking-tighter leading-none">{ticket.ticketNumber}</h2>
+                        <h3 className="text-lg font-bold text-slate-700 mt-3 bg-slate-100 px-4 py-1.5 rounded-full inline-block">{ticket.serviceType}</h3>
                     </div>
-                </div>
-            </div>
 
-            {/* İstatistik kartları — sadece aktif bekleme sürecinde */}
-            {!finalState && (
-                <div className="mx-4 mt-4 grid grid-cols-2 gap-4">
-                    <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 text-center space-y-1">
-                        <div className="flex justify-center mb-1">
-                            <Users size={22} className="text-[#002855]" />
+                    <div className="w-full pt-10 pb-2 z-20">
+                        <div className={`w-full flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl font-black text-lg shadow-sm transition-all duration-300 ${cfg.bg} ${cfg.color} ${cfg.pulseMode ? 'animate-pulse-ring' : ''}`}>
+                            <cfg.Icon size={24} strokeWidth={3} />
+                            {cfg.label}
                         </div>
-                        <p className="text-3xl font-black text-[#002855]">{ticket.aheadOfMe}</p>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase">Önünüzdeki Kişi</p>
                     </div>
-                    <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 text-center space-y-1">
-                        <div className="flex justify-center mb-1">
-                            <Clock size={22} className="text-orange-500" />
+                </div>
+
+                {/* Dynamic Content below ticket */}
+                <div className="mt-8 flex flex-col gap-4">
+                    
+                    {!finalState && ticket.status !== 'CALLED' && (
+                        <div className="grid grid-cols-2 gap-4 animate-fade-up">
+                            <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 text-center flex flex-col items-center justify-center gap-1">
+                                <Users size={24} className="text-turkcell mb-1" strokeWidth={2.5} />
+                                <span className="text-4xl font-black text-darkblue leading-none">{ticket.aheadOfMe}</span>
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Önünüzdeki</span>
+                            </div>
+                            <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 text-center flex flex-col items-center justify-center gap-1">
+                                <Clock size={24} className="text-darkblue mb-1" strokeWidth={2.5} />
+                                <span className="text-4xl font-black text-turkcell leading-none">~{ticket.estimatedWaitTime}</span>
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Dk Bekleme</span>
+                            </div>
                         </div>
-                        {/* Tahmini bekleme: formula uygulanmış değer backend'den geliyor */}
-                        <p className="text-3xl font-black text-orange-500">~{ticket.estimatedWaitTime}</p>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase">Dk. Bekleme</p>
-                    </div>
-                </div>
-            )}
+                    )}
 
-            {/* CALLED — acil uyarı banner */}
-            {ticket.status === 'CALLED' && (
-                <div className="mx-4 mt-4 bg-orange-500 text-white rounded-3xl p-5 flex items-center gap-4 shadow-lg animate-bounce">
-                    <Bell size={32} className="flex-shrink-0" />
-                    <div>
-                        <p className="font-black text-lg">Sıranız Geldi!</p>
-                        <p className="text-sm text-orange-100">Lütfen gişeye gidiniz.</p>
-                    </div>
-                </div>
-            )}
+                    {ticket.status === 'CALLED' && (
+                        <div className="bg-darkblue rounded-3xl p-6 text-white text-center shadow-tc-xl animate-fade-up">
+                            <h3 className="text-2xl font-black text-turkcell mb-2">Lütfen Gişeye Yönelin</h3>
+                            <p className="text-sm font-medium text-white/80">Sıranız geldiği için işlem başlatmak üzere gişe personeli sizi bekliyor.</p>
+                        </div>
+                    )}
 
-            {/* DONE — teşekkür mesajı */}
-            {ticket.status === 'DONE' && (
-                <div className="mx-4 mt-4 bg-green-50 border-2 border-green-200 text-green-700 rounded-3xl p-5 flex items-center gap-4">
-                    <CheckCircle2 size={32} className="flex-shrink-0" />
-                    <div>
-                        <p className="font-black">İşleminiz Tamamlandı</p>
-                        <p className="text-sm text-green-600">Turkcell'i tercih ettiğiniz için teşekkürler.</p>
-                    </div>
-                </div>
-            )}
+                    {/* Final state messages */}
+                    {finalState && (
+                        <div className="text-center p-6 bg-white rounded-3xl border border-slate-200 animate-fade-up shadow-sm">
+                            <h3 className="text-lg font-black text-darkblue mb-1">Oturum Sonlandı</h3>
+                            <p className="text-slate-500 font-medium text-sm">Turkcell'i tercih ettiğiniz için teşekkür ederiz. Yeni bir işlem için tekrar sıra alabilirsiniz.</p>
+                        </div>
+                    )}
 
-            {/* NO_SHOW — bilgi mesajı */}
-            {ticket.status === 'NO_SHOW' && (
-                <div className="mx-4 mt-4 bg-red-50 border-2 border-red-200 text-red-700 rounded-3xl p-5 flex items-center gap-4">
-                    <XCircle size={32} className="flex-shrink-0" />
-                    <div>
-                        <p className="font-black">Gelmedi Olarak İşaretlendi</p>
-                        <p className="text-sm text-red-500">Yeni sıra almak için şubeye gidin.</p>
-                    </div>
+                    {/* Polling Indicator */}
+                    {!finalState && (
+                        <div className="flex justify-center items-center gap-2 text-slate-400 font-bold text-xs mt-4">
+                            <Loader2 size={14} className="animate-spin text-turkcell" /> CANLI TAKİP
+                        </div>
+                    )}
                 </div>
-            )}
-
-            {/* Polling göstergesi — sadece aktif süreçte */}
-            {!finalState && (
-                <div className="flex items-center justify-center gap-2 mt-6 pb-6 text-gray-400 text-xs">
-                    <Loader2 size={12} className="animate-spin" />
-                    Her 3 saniyede güncelleniyor
-                </div>
-            )}
+            </div>
         </div>
     );
 };

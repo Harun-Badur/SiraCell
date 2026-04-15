@@ -1,117 +1,337 @@
 @import "tailwindcss";
 
+/* ════════════════════════════════════════════════════════════════════════════
+   SıraCell — Turkcell Kurumsal Tasarım Sistemi
+   Referans: turkcell.com.tr
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Google Fonts (Inter — Turkcell'in özel fontu yerine kullanır) ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ── Turkcell Resmi Renk Paleti ────────────────────────────────────────── */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Ana renkler */
+  --tc-yellow:        #ffcc00;   /* Sarı — logo, CTA, vurgu */
+  --tc-yellow-dark:   #e6b800;   /* Hover sarı */
+  --tc-navy:          #003399;   /* Koyu lacivert — header bg, başlıklar */
+  --tc-navy-dark:     #002277;   /* Daha koyu lacivert */
+  --tc-blue:          #0066cc;   /* Link mavisi */
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* Arka planlar */
+  --tc-bg:            #f4f4f4;   /* Sayfa arka planı (turkcell.com.tr ile aynı) */
+  --tc-bg-white:      #ffffff;   /* Kart arka planı */
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  /* Metin */
+  --tc-text:          #1a1a1a;   /* Ana metin */
+  --tc-text-light:    #555555;   /* İkincil metin */
+  --tc-text-muted:    #888888;   /* Placeholder / ipucu */
+
+  /* Kenar çizgileri */
+  --tc-border:        #dddddd;
+  --tc-border-focus:  #ffcc00;
+
+  /* Gölge */
+  --tc-shadow-sm:     0 1px 4px rgba(0,0,0,0.10);
+  --tc-shadow-md:     0 4px 16px rgba(0,0,0,0.12);
+  --tc-shadow-lg:     0 8px 32px rgba(0,0,0,0.14);
+
+  /* Genel font ayarları */
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--tc-text);
+  background-color: var(--tc-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* ── Reset ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background-color: var(--tc-bg); }
+button { font-family: inherit; cursor: pointer; }
+#root { min-height: 100svh; display: flex; flex-direction: column; }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+/* ════════════════════════════════════════════════════════════════════════════
+   NAVBAR — turkcell.com.tr beyaz header'ı
+   ════════════════════════════════════════════════════════════════════════════ */
+.tc-navbar {
+  background-color: var(--tc-navy);   /* Turkcell lacivert navbar */
+  border-bottom: 4px solid var(--tc-yellow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--tc-shadow-md);
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
+.tc-navbar-inner {
+  max-width: 1200px;
   margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+  padding: 0 1.25rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tc-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+/* Gerçek Turkcell logo img */
+.tc-logo-img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* Fallback SVG (img yüklenemezse) */
+.tc-logo-fallback {
+  display: none;   /* JS ile gösterilir */
+  align-items: center;
+}
+.tc-logo-svg {
+  height: 36px;
+  width: auto;
+}
+
+/* Ürün adı bloğu */
+.tc-navbar-product {
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+  line-height: 1.15;
+  text-align: left;
+}
+.tc-navbar-product-name {
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: var(--tc-yellow);
+  letter-spacing: -0.3px;
+}
+.tc-navbar-product-sub {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
 }
 
-body {
-  margin: 0;
+/* Sağ taraf butonlar */
+.tc-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+.tc-navbar-staff-btn {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.4rem 0.875rem;
+  border-radius: 6px;
+  border: 1.5px solid var(--tc-yellow);
+  background: transparent;
+  color: var(--tc-yellow);
+  transition: background 0.15s, color 0.15s;
+  display: none;
+}
+@media (min-width: 640px) { .tc-navbar-staff-btn { display: inline-flex; } }
+.tc-navbar-staff-btn:hover {
+  background: var(--tc-yellow);
+  color: var(--tc-navy);
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+.tc-navbar-logout {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.tc-navbar-logout:hover {
+  color: #ffffff;
+  background: rgba(255,255,255,0.1);
 }
 
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+/* ════════════════════════════════════════════════════════════════════════════
+   SAYFA GENEL LAYOUT
+   ════════════════════════════════════════════════════════════════════════════ */
+.tc-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+  flex: 1;
 }
 
-p {
-  margin: 0;
+/* ════════════════════════════════════════════════════════════════════════════
+   KARTLAR — turkcell.com.tr düz beyaz kartlar
+   ════════════════════════════════════════════════════════════════════════════ */
+.tc-card {
+  background: var(--tc-bg-white);
+  border: 1px solid var(--tc-border);
+  border-radius: 12px;
+  box-shadow: var(--tc-shadow-sm);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.tc-card:hover {
+  border-color: var(--tc-yellow);
+  box-shadow: var(--tc-shadow-md);
+}
+.tc-card-clickable {
+  cursor: pointer;
+}
+.tc-card-clickable:active {
+  transform: scale(0.99);
 }
 
-code,
-.counter {
-  font-family: var(--mono);
+/* ════════════════════════════════════════════════════════════════════════════
+   BUTONLAR — turkcell.com.tr CTA butonları
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Sarı birincil buton */
+.tc-btn {
   display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  border-radius: 8px;
+  padding: 0.8125rem 1.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.1s, opacity 0.15s;
+  text-align: center;
+  white-space: nowrap;
+}
+.tc-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.tc-btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.tc-btn-primary {
+  background-color: var(--tc-yellow);
+  color: var(--tc-navy);
 }
+.tc-btn-primary:hover:not(:disabled) {
+  background-color: var(--tc-yellow-dark);
+}
+
+.tc-btn-secondary {
+  background-color: var(--tc-navy);
+  color: #ffffff;
+}
+.tc-btn-secondary:hover:not(:disabled) {
+  background-color: var(--tc-navy-dark);
+}
+
+.tc-btn-outline {
+  background-color: transparent;
+  color: var(--tc-navy);
+  border: 2px solid var(--tc-navy);
+}
+.tc-btn-outline:hover:not(:disabled) {
+  background-color: var(--tc-navy);
+  color: #ffffff;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   INPUT ALANLARI — turkcell.com.tr form elemanları
+   ════════════════════════════════════════════════════════════════════════════ */
+.tc-input {
+  width: 100%;
+  padding: 0.8125rem 1rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--tc-text);
+  background: var(--tc-bg-white);
+  border: 1.5px solid var(--tc-border);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none;
+}
+.tc-input::placeholder {
+  color: var(--tc-text-muted);
+}
+.tc-input:focus {
+  border-color: var(--tc-yellow);
+  box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.22);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   BADGE / ETİKET
+   ════════════════════════════════════════════════════════════════════════════ */
+.tc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.25rem 0.625rem;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tc-badge-yellow { background: #fff8cc; color: #b38000; }
+.tc-badge-blue   { background: #e0eeff; color: var(--tc-navy); }
+.tc-badge-green  { background: #e6f8ee; color: #1a7a40; }
+.tc-badge-red    { background: #fee8e8; color: #c0392b; }
+.tc-badge-gray   { background: #f0f0f0; color: #555; }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   LOADİNG SKELETONS
+   ════════════════════════════════════════════════════════════════════════════ */
+@keyframes tc-skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.tc-skeleton {
+  background: #e8e8e8;
+  border-radius: 6px;
+  animation: tc-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ANİMASYONLAR
+   ════════════════════════════════════════════════════════════════════════════ */
+@keyframes tc-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.tc-fade-up {
+  animation: tc-fade-up 0.3s ease both;
+}
+
+@keyframes tc-pulse-ring {
+  0%   { transform: scale(0.9); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.tc-pulse-ring {
+  animation: tc-pulse-ring 1.4s ease-out infinite;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   LEAFLET HARİTA (z-index sorunu önleme)
+   ════════════════════════════════════════════════════════════════════════════ */
+.leaflet-container { z-index: 0 !important; }
+.leaflet-pane,
+.leaflet-map-pane { z-index: 0; }
+.leaflet-top,
+.leaflet-bottom    { z-index: 10; }
