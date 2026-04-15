@@ -75,23 +75,36 @@ export const BranchListPage = () => {
     return (
         <div className="flex flex-col bg-slate-50 min-h-[calc(100vh-[64px])]">
             {/* Minimal Map Section */}
-            <div className="h-64 sm:h-80 w-full relative z-0 flex-shrink-0 shadow-sm border-b-4 border-turkcell">
+            <div className="h-64 sm:h-80 w-full relative z-0 flex-shrink-0 shadow-sm border-b-4 border-[#002855]">
                 <MapContainer center={ISTANBUL} zoom={11} style={{ height: '100%', width: '100%' }}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" attribution='&copy; OpenStreetMap & CARTO' />
-                    {branches?.map((branch) => (
-                        <Marker key={branch.id} position={[branch.latitude, branch.longitude]} eventHandlers={{ click: () => navigate(`/branch/${branch.id}`) }}>
-                            <Popup className="rounded-xl overflow-hidden border-none shadow-tc-xl">
-                                <div className="font-sans text-sm min-w-[150px] p-1">
-                                    <strong className="text-darkblue block text-base leading-tight mb-1">{branch.name}</strong>
-                                    <span className="text-slate-500 text-xs block mb-2">{branch.address}</span>
-                                    <div className="flex items-center gap-1.5 text-xs font-bold text-darkblue bg-turkcell/20 px-2 py-1 rounded-md w-max">
-                                        <Users size={12} className="text-darkblue" />
-                                        <span>{branch.waitingCount ?? 0} Bekleyen</span>
+                    {branches?.map((branch) => {
+                        const isClosed = branch.activeCounters === 0;
+                        const popupWaitTime = !isClosed ? Math.ceil((branch.waitingCount * 5) / branch.activeCounters) : null;
+                        
+                        return (
+                            <Marker key={branch.id} position={[branch.latitude, branch.longitude]} eventHandlers={{ click: () => navigate(`/branch/${branch.id}`) }}>
+                                <Popup className="rounded-xl overflow-hidden border-none shadow-tc-xl">
+                                    <div className="font-sans text-sm min-w-[150px] p-1">
+                                        <strong className="text-darkblue block text-base leading-tight mb-1">{branch.name}</strong>
+                                        <span className="text-slate-500 text-xs block mb-2">{branch.address}</span>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1 text-xs font-bold text-darkblue bg-turkcell/20 px-2 py-1 rounded-md w-max">
+                                                <Users size={12} className="text-darkblue" />
+                                                <span>{branch.waitingCount ?? 0}</span>
+                                            </div>
+                                            {!isClosed && (
+                                                <div className="flex items-center gap-1 text-[10px] font-bold text-white bg-darkblue px-2 py-1 rounded-md w-max">
+                                                    <Clock size={10} />
+                                                    <span>~{popupWaitTime} dk</span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            </Popup>
-                        </Marker>
-                    ))}
+                                </Popup>
+                            </Marker>
+                        );
+                    })}
                 </MapContainer>
                 {/* Gradient overlay for fade effect into list */}
                 <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-slate-50 to-transparent z-[1000] pointer-events-none" />
@@ -109,8 +122,11 @@ export const BranchListPage = () => {
                         <div className="p-5 bg-darkblue/5 rounded-full mb-4">
                             <SearchX size={48} className="text-darkblue" strokeWidth={1.5} />
                         </div>
-                        <h3 className="text-lg font-black text-slate-600">Yakınınızda şube bulamadık.</h3>
-                        <p className="text-sm font-medium text-slate-500 mt-1">Lütfen konum ayarlarınızı kontrol edin.</p>
+                        <h3 className="text-lg font-black text-slate-600">Yakında şube bulunamadı.</h3>
+                        <p className="text-sm font-medium text-slate-500 mt-1 mb-6">Lütfen konum ayarlarınızı kontrol edin veya haritayı güncelleyin.</p>
+                        <button onClick={() => refetch()} className="flex items-center gap-2 px-6 py-3 bg-darkblue text-white rounded-2xl text-sm font-bold hover:bg-[#003a7a] transition-all active:scale-95 shadow-tc">
+                            <RefreshCw size={18} /> Yeniden Dene
+                        </button>
                     </div>
                 )}
 

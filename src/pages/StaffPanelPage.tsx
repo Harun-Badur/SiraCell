@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axiosInstance';
-import { UserCheck, CheckCircle2, UserMinus, Power, BarChart3, Clock, Loader2, Navigation } from 'lucide-react';
+import { UserCheck, CheckCircle2, UserMinus, Power, BarChart3, Clock, Loader2, Navigation, Users } from 'lucide-react';
 import { toast } from '../components/Feedback';
 
 interface ActiveTicket { ticket_number: string; service_type: string; user_gsm?: string; }
@@ -78,16 +78,21 @@ export const StaffPanelPage = () => {
                         <div className="text-center bg-rose-100 text-rose-700 py-3 rounded-2xl font-bold border border-rose-200">Bekleyen müşteri yok veya gişe kapalı.</div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col items-center gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col items-center gap-2">
                             <div className="p-3 bg-darkblue/10 text-darkblue rounded-xl"><BarChart3 size={24} strokeWidth={2.5} /></div>
-                            <span className="text-3xl font-black text-darkblue leading-none mt-2">24</span>
-                            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Hizmet Verilen</span>
+                            <span className="text-3xl font-black text-darkblue leading-none mt-2">42</span>
+                            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Toplam Hizmet</span>
                         </div>
-                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col items-center gap-2">
+                        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col items-center gap-2">
                             <div className="p-3 bg-turkcell/20 text-turkcell rounded-xl"><Clock size={24} strokeWidth={2.5} /></div>
-                            <span className="text-3xl font-black text-darkblue leading-none mt-2">4.2</span>
-                            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Ortalama (Dk)</span>
+                            <span className="text-3xl font-black text-darkblue leading-none mt-2">4.5</span>
+                            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Ort. İşlem (Dk)</span>
+                        </div>
+                        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col items-center gap-2">
+                            <div className="p-3 bg-rose-50 text-rose-500 rounded-xl"><Users size={24} strokeWidth={2.5} /></div>
+                            <span className="text-3xl font-black text-darkblue leading-none mt-2">8</span>
+                            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Sıradaki Bekleyen</span>
                         </div>
                     </div>
                 </div>

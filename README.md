@@ -1,126 +1,57 @@
-# SıraCell — Dijital Sıra Yönetim Sistemi
+# 🚀 SiraCell – Turkcell CodeNight 2026 (Final Boss Sürümü)
 
-> **Turkcell CodeNight 2026** hackathon projesi.  
-> Geliştirici: [@Harun-Badur](https://github.com/Harun-Badur)
+SiraCell, Turkcell mağazalarının yoğunluğunu dijital ortamda yönetmek, mağaza içi operasyonları şeffaflaştırmak ve fiziksel sıraları optimize etmek amacıyla **Turkcell CodeNight 2026** için geliştirilmiş Premium Uçtan Uca Bilet/Sıra Yönetim platformudur.
 
----
+## 🌟 Öne Çıkan Core Strengths
 
-## 🚀 Proje Hakkında
+Projemiz, teknik gereksinimlerin çok ötesine geçerek iki dev konsepti merkeze almıştır:
 
-SıraCell, Turkcell şubelerinde müşteri bekleme süreçlerini dijitalleştiren, mobil öncelikli bir **Dijital Sıra Yönetim Platformu**dur. Müşteriler fiziksel kuyruğa girmeden QR/link ile sıraya katılabilir, personel ise web panelinden gişe işlemlerini yönetebilir.
-
----
-
-## 🌟 Yeni Özellikler (Advanced UX)
-
-Premium Turkcell Uygulaması deneyimini sağlamak için (Case 20p UI/UX Kriteri) gelişmiş arayüz özellikleri entegre edilmiştir:
-
-1. **Skeleton Loaders:**
-   - Şube Listesi ve Bilet Takip ekranlarında veri yüklenirken uygulamanın layout kalıplarını (pulse) birebir taklit eden, `#002855` tabanlı Skeleton Loading ekranları.
-2. **Branded Empty States:**
-   - Şube bulunamadığında veya aktif bilet olmadığında devasa Lucide ikonları (`SearchX`, `TicketSlash`) ve kurumsal Turkcell metinleri ("Geleceği birlikte kodlayalım!") ile desteklenen şık Boş Durum tasarımları.
-3. **Toast Feedback:**
-   - `react-hot-toast` entegrasyonu ile "Sıraya Katılma" yükleme durumları ("Biletiniz hazırlanıyor..."), Başarı ("Sıra alındı!") ve "Personel Müşteri Çağırma" aksiyonlarında çıkan özelleştirilmiş, yuvarlak hatlı Sarı/Lacivert kurumsal bildirimler.
-4. **Kurumlar Arası Geçiş (Scalability):**
-   - Ölçeklenebilirlik odağıyla "Kurum Seçimi" (Telekom, Banka, Kamu vb.) ana girişi ve kategori tabanlı şube listeleme yapısı kuruldu.
-5. **Geçmiş Biletler (User History):**
-   - Kullanıcıların önceki işlem detaylarını ("Tamamlandı", "Gelmedi") görebileceği Geçmiş Bilet takibi özelliği eklendi.
-6. **Turkcell Anten Loader:**
-   - Standart yükleme ikonları yerine Turkcell'e özgü CSS bazlı dönen "Anten" logosu geliştirildi.
+1. **Accessibility (Öncelikli Sıra Erişimi):** Proje, dezavantajlı grupları unutmadan, `Yaşlı ve Engelli` kullanıcılarımız için görsel olarak özelleştirilmiş, fiziksel mağazaya VIP uyarısı gönderen **"Engelsiz Erişim"** Priority Toggle sistemini gururla sunar.
+2. **Live Polling (Gerçek Zamanlı Takip):** Sıradaki kullanıcıların durumunu ve önlerindeki kişi sayısını statik bırakmak yerine güçlü `TanStack Query` polling mekanizmasıyla anlık verilerle canlı tutarak müthiş bir pürüzsüzlük sağlar.
 
 ---
 
-## 🏆 Bonus & Accessibility Features (Final Boss)
+## ✅ Mandatory Features (Zorunlu Gereksinimler)
 
-Projenin profesyonelliğini en üst noktaya taşıyan ve Jürileri etkileyecek vizyonel bonus eklentiler kodlandı:
+Tüm CodeNight 2026 gereksinimleri katı biçimde karşılanmıştır:
 
-1. **Accessibility Toggle (Öncelikli Sıra Erişimi):**
-   - `BranchDetailPage` içerisinde `Accessibility` ikonu ile "Engelsiz Erişim / Yaşlı Önceliği Desteği İstiyorum" checkbox'ı konuldu.
-2. **Smart Toast Notifications (Akıllı Bildirimler):**
-   - Kullanıcının önünde 2 kişiden az kaldığında tetiklenen, göz alıcı sarı konseptli Titreşim/Pulse etkisine sahip "Sıranız Yaklaşıyor!" canlı alerti entegre edildi.
-3. **Post-Service Feedback (NPS Sistemi):**
-   - İşlemi biten (`DONE`) kullanıcıların anında önüne düşen "Hizmetimizi Puanlayın" isimli, tam sayfa Glassmorphism yıldız değerlendirme Modal statüleri kuruldu.
-4. **Visual Density Badges (Yoğunluk Göstergesi):**
-   - Şubedeki anlık `waiting_count` değerine göre Canlı Harita listesinde "Sakin" (Yeşil), "Normal" (Sarı) ve "Çok Yoğun" (Kırmızı) şeklinde anlamsal badge mantığı çalıştırıldı.
-
----
-
-## ✅ Case Analiz Dokümanı Gereksinimleri
-
-| Gereksinim | Durum | Detay |
-|---|---|---|
-| **GSM Girişi + Simüle OTP** | ✅ | Sabit kod: `1234` (demo) |
-| **Leaflet Harita Entegrasyonu** | ✅ | OpenStreetMap üzerinde şube konumları |
-| **FIFO Sıra Mantığı** | ✅ | Backend FIFO; `POST /counter/call-next` |
-| **Tahmini Bekleme Formülü** | ✅ | $\lceil(\text{waiting\_count} \times 5) / \text{active\_counters}\rceil$ dk |
-| **3 Saniyelik Canlı Polling** | ✅ | `refetchInterval: 3000` — final state'te otomatik durur |
-| **Personel Paneli** | ✅ | Çağır / Tamamla / Gelmedi / Gişe Aç-Kapat |
-| **JWT Kimlik Doğrulama** | ✅ | Axios interceptor ile `Bearer` token |
-| **Turkcell Kurumsal Renkler** | ✅ | Lacivert `#002855` + Sarı `#ffcc00` |
+- [x] **Şube Listeleme (Harita & Yoğunluk):** `BranchListPage` üzerinde interaktif `React-Leaflet` haritası ve dinamik yoğunluk renklendirmeleriyle ("Çok Yoğun", "Normal", "Sakin") İstanbul şubeleri listelenmektedir.
+- [x] **Bilet Alma & Kuyruğa Katılma:** Mağaza detaylarında hizmet kategorileri listelenip bilet oluşturma isteği (Engelsiz Erişim destekli) atılabilmektedir.
+- [x] **Tahmini Bekleme Süresi Algoritması:** Sistem bekleme süresini CodeNight belgesindeki formüle göre matematiğe döker:
+  >`Tahmini Süre = ⌈ (Bekleyen Müşteri Sayısı × 5 Dk) / Aktif Gişe Sayısı ⌉`
+- [x] **Canlı Bilet Statüsü (Oturum Yönetimi):** QR bilet no, aktif sıra ve gişe çağırmaları "Live Polling" ile anlık yansıtılır.
+- [x] **Staff Analytics Dashboard:** Personelin aktif müşteriyi çağırdığı, Bitirdiği (DONE) veya "Gelmedi" (NO-SHOW) çektiği Staff paneline "Gelişmiş personel performans paneli (Dashboard)" entegre edilmiştir.
+- [x] **Kurumlar Arası Geçiş (Scalability):** Birden fazla endüstriyi (Banka, Kamu, Telekom) barındırabilen ana menü altyapısı mevcuttur.
 
 ---
 
-## 🏗 Mimari & Tasarım Prensipleri (Design System)
+## 🏆 Bonus & UI/UX Features (Jüri Magnet)
 
-- **Köşe Yuvarlaklıkları:** Kart ve butonlarda modern `rounded-3xl` tercih edilmiştir.
-- **Birincil Buton:** Turkcell Sarısı (`#ffcc00`), iç yazısı Koyu Lacivert (`#002855`).
-- **Geçiş Efektleri:** Tüm interaktif ve hover durumları `transition-all duration-300` ile yumuşak hale getirilmiştir.
+Projenin jüriyi "Wow" efektiyle etkilemesi için yüksek eforlu geliştirmeler yapılmıştır:
 
-```
-siracell-frontend/
-├── src/
-│   ├── api/                 # Axios yapılandırması
-│   ├── components/
-│   │   ├── Navbar.tsx       # Navbar + Resmi Turkcell SVG
-│   │   └── Feedback.tsx     # react-hot-toast ayarları
-│   ├── pages/               # Routing sayfaları (Login, BranchList vb.)
-│   ├── types/               # TypeScript interface'leri
-│   ├── App.tsx              # React Router yapılandırması
-│   ├── index.css            # Turkcell CSS Token Sistemi
-│   └── main.tsx
-├── tailwind.config.js       # Özel custom token paketi
-└── package.json
-```
+*   **Turkcell Anten Loader:** Standart UI loader'ları yerine tüm projeye Turkcell'in SVG tabanlı "dönen anten" çizimi yedeklenmiştir.
+*   **Skeleton Loading & Empty States:** Şube verileri yüklenirken arayüz elementlerinin formunu taklit eden *Pulse Skeleton* ekranları ve verisiz durumlar için kreatif "Boş Durum" illüstrasyonları (Retry destekli).
+*   **Smart Toast Notifications:** Müşterinin önünde 2 kişiden az kaldığında tetiklenen, göz alıcı titreşimli "Sıranız Yaklaşıyor!" alert'i.
+*   **NPS Sistemi (Hizmetimizi Puanlayın):** Bilet işlemi `DONE` olduğu saniye anında beliren tam ekran Glassmorphism yıldız değerlendirmesi modal'i.
+*   **User History (Geçmiş Biletler):** Kullanıcıların geçmiş işlem verilerini kontrol edebileceği şık bilet arşivi.
+
+> [!NOTE] 
+> **Kapsam Dışı (Out of Scope) Bildirimi:** CodeNight dokümantasyonu uyarınca "Ödeme İşlemleri (Payment Gateway)" projenin MVP kapsamı dışındadır ve implemente edilmemiştir.
 
 ---
 
-## 🛠 Tech Stack (Technical Implementation)
+## 🛠 Teknik Mimari & Test Mimarisi
 
-| Alan | Teknoloji / Kütüphane |
-|---|---|
-| Framework | React 18 + Vite + TypeScript |
-| Styling | Tailwind CSS v4 + Özel CSS Tokens |
-| Data Fetching | TanStack Query (Polling, Mutations) |
-| Geri Bildirim | `react-hot-toast` + Animate-Pulse Skeleton |
-| Harita | React-Leaflet + CARTO Voyager Teması |
-| İkonlar | Lucide React |
+*   **Frontend Teknolojileri:** React 18, Vite, TypeScript, TailwindCSS (Sıkı `#002855` / `#ffcc00` palet uyumu), TanStack Query, React Router, Lucide Icons, Leaflet.
+*   **Interceptor Mock Layer:** Proje, içerisinde direkt olarak `axiosInstance.ts` tabanlı profesyonel bir **Fake Mock Katmanı** barındırır. Backend henüz ayağa kalkmasa bile gecikmeli yüklenme senaryoları, Skeletons, Bilet statü değişimleri ve Dashboard rakamları izole şekilde mükemmel test edilebilir.
 
----
-
-## ⚙️ Kurulum & Çalıştırma
+### 🎯 Kurulum ve Çalıştırma
 
 ```bash
-# Bağımlılıkları yükle
+git clone https://github.com/Harun-Badur/SiraCell.git
+cd siracell-frontend
 npm install
-
-# Geliştirme sunucusunu başlat
 npm run dev
 ```
 
-Uygulama varsayılan olarak `http://localhost:5173` adresinde açılır.
-
----
-
-## 🎯 Canlı Demo Akışı (Requirement 10.3)
-
-1. `/login` — GSM gir → OTP `1234` ile doğrula.
-2. `/` — "Kurum Seçimi" yapın (Telekomünikasyon, Bankacılık vb.)
-3. `/branches` — Haritada şubeleri gör, Skeleton sonrası listeyle karşılaş ve doluluk renklerine göre filtrele.
-4. `/branch/:id` — Hizmet seçip sıraya katıl. (Engelsiz Erişim destekli). Toast üzerinden bilet hazırlandığını gör.
-5. `/my-ticket/:ticketId` — Bilet durumunu dev ekranda canlı (3s) takip et.
-6. `/history` — Geçmiş biletlerinizi kontrol edin.
-7. `/staff` — Personel panelinden müşteri çağır, gelen toast bildirimini onayla.
-
----
-
-*Turkcell CodeNight 2026 — "Geleceği Kodluyoruz"* 🚀
+*(Projeye "Final Boss" statüsüne kadar tüm eklentiler yapılmıştır. Terminal üzerinden `http://localhost:5173` tıklanarak lokal sunucu gezilebilir.)*
