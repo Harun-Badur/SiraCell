@@ -1,9 +1,11 @@
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axiosInstance';
 import { type QueueTicket } from '../types';
-import { Loader2, ArrowLeft, Clock, Users, Bell, CheckCircle2, TicketX, Zap, TicketSlash } from 'lucide-react';
+import { Loader2, ArrowLeft, Clock, Users, Bell, CheckCircle2, TicketX, Zap, TicketSlash, Star } from 'lucide-react';
 import type { ElementType } from 'react';
+import { toast } from '../components/Feedback';
 
 type StatusConfig = { label: string; color: string; bg: string; border: string; Icon: ElementType; pulseMode: boolean };
 
@@ -30,6 +32,30 @@ export const MyTicketPage = () => {
         refetchInterval: (query) => isFinalStatus(query.state.data?.status) ? false : 3000,
         refetchIntervalInBackground: true,
     });
+
+    const [alerted, setAlerted] = useState(false);
+    const [showFeedback, setShowFeedback] = useState(false);
+    const [rating, setRating] = useState(0);
+
+    // Smart Toast: Sıranız Yaklaşıyor
+    useEffect(() => {
+        if (ticket && ticket.aheadOfMe <= 2 && ticket.aheadOfMe > 0 && !alerted && !isFinalStatus(ticket.status) && ticket.status !== 'CALLED') {
+            toast.custom((t) => (
+                <div className={`${t.visible ? 'animate-bounce-in' : 'animate-fade-out'} bg-[#ffcc00] text-[#002855] px-6 py-4 rounded-3xl shadow-tc-xl font-black flex items-center gap-3 border-2 border-white`}>
+                   <Bell size={24} className="animate-pulse" />
+                   Sıranız Yaklaşıyor!
+                </div>
+            ), { duration: 5000 });
+            setAlerted(true);
+        }
+    }, [ticket?.aheadOfMe, alerted, ticket?.status]);
+
+    // NPS Modal Triggers
+    useEffect(() => {
+        if (ticket?.status === 'DONE') {
+            setShowFeedback(true);
+        }
+    }, [ticket?.status]);
 
     if (isLoading) {
         return (
@@ -156,6 +182,42 @@ export const MyTicketPage = () => {
                     )}
                 </div>
             </div>
+
+            {/* NPS Form Modal */}
+            {showFeedback && (
+                <div className="fixed inset-0 z-[100] bg-[#002855]/90 backdrop-blur-sm flex items-center justify-center p-6">
+                    <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-sm text-center shadow-tc-xl animate-bounce-in border-4 border-turkcell">
+                        <div className="flex justify-center mb-4">
+                            <div className="bg-turkcell/20 p-4 rounded-full">
+                                <Star size={48} className="text-turkcell fill-turkcell" />
+                            </div>
+                        </div>
+                        <h2 className="text-2xl font-black text-[#002855] mb-2">Hizmetimizi Puanlayın</h2>
+                        <p className="text-sm font-bold text-slate-400 mb-8">Az önce aldığınız hizmetten ne kadar memnun kaldınız?</p>
+                        
+                        <div className="flex justify-center gap-2 mb-8" dir="ltr">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <button key={star} onClick={() => setRating(star)} className="focus:outline-none transition-transform hover:scale-110 active:scale-95">
+                                    <Star size={40} className={star <= rating ? "fill-turkcell text-turkcell drop-shadow-sm" : "text-slate-200"} />
+                                </button>
+                            ))}
+                        </div>
+                        
+                        <button 
+                           onClick={() => {
+                               // Mock NPS submission
+                               // api.post('/feedback', { ticketId, rating }).catch(() => {});
+                               setShowFeedback(false);
+                               toast.success("Değerlendirmeniz için teşekkürler!");
+                           }}
+                           disabled={rating === 0}
+                           className="w-full bg-[#002855] text-white font-bold py-4 rounded-2xl disabled:opacity-50 disabled:grayscale transition-all active:scale-[0.98]"
+                        >
+                            Gönder
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

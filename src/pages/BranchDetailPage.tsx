@@ -201,8 +201,8 @@ export const BranchDetailPage = () => {
                             <Accessibility size={20} />
                         </div>
                         <div>
-                            <h4 className="font-black text-[#002855] text-sm">Engelsiz Erişim</h4>
-                            <p className="text-xs font-bold text-gray-400">Yaşlı veya engelli müşterilerimiz için</p>
+                            <h4 className="font-black text-[#002855] text-sm">Engelsiz Erişim / Yaşlı Önceliği Desteği İstiyorum</h4>
+                            <p className="text-xs font-bold text-gray-400">Öncelikli hizmet almak için işaretleyin</p>
                         </div>
                     </div>
                     <div className={`w-12 h-6 rounded-full flex items-center p-1 transition-colors ${isPriority ? 'bg-[#ffcc00]' : 'bg-gray-200'}`}>

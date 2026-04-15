@@ -45,5 +45,6 @@ export const toast = {
     loading: (msg: string, opts?: ToastOptions) => hotToast.loading(msg, opts),
     success: (msg: string, opts?: ToastOptions) => hotToast.success(msg, opts),
     error: (msg: string, opts?: ToastOptions) => hotToast.error(msg, opts),
+    custom: (jsx: any, opts?: ToastOptions) => hotToast.custom(jsx, opts),
     dismiss: (id?: string) => hotToast.dismiss(id),
 };

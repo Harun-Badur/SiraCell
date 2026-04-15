@@ -124,9 +124,9 @@ export const BranchListPage = () => {
                                           waitTime !== null && waitTime <= 25 ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                           'bg-rose-50 text-rose-700 border-rose-200';
                         
-                        const crowdColor = branch.waitingCount < 5 ? 'bg-emerald-50 text-emerald-700' :
-                                           branch.waitingCount < 15 ? 'bg-amber-50 text-amber-700' :
-                                           'bg-rose-50 text-rose-700';
+                        const densityBadge = branch.waitingCount < 5 ? { label: 'Sakin', class: 'bg-emerald-50 text-emerald-700 border-emerald-100' } :
+                                             branch.waitingCount > 10 ? { label: 'Çok Yoğun', class: 'bg-rose-50 text-rose-700 border-rose-200' } :
+                                             { label: 'Normal', class: 'bg-amber-50 text-amber-700 border-amber-200' };
 
                         return (
                             <div
@@ -155,8 +155,8 @@ export const BranchListPage = () => {
                                             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-bold text-xs ${waitColor}`}>
                                                 <Clock size={14} /> ~{waitTime} dk
                                             </div>
-                                            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs ${crowdColor}`}>
-                                                <Users size={14} /> {branch.waitingCount} Kişi
+                                            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-bold text-xs ${densityBadge.class}`}>
+                                                <Users size={14} /> {branch.waitingCount} Kişi ({densityBadge.label})
                                             </div>
                                         </>
                                     ) : (

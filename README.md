@@ -25,10 +25,23 @@ Premium Turkcell Uygulaması deneyimini sağlamak için (Case 20p UI/UX Kriteri)
    - Ölçeklenebilirlik odağıyla "Kurum Seçimi" (Telekom, Banka, Kamu vb.) ana girişi ve kategori tabanlı şube listeleme yapısı kuruldu.
 5. **Geçmiş Biletler (User History):**
    - Kullanıcıların önceki işlem detaylarını ("Tamamlandı", "Gelmedi") görebileceği Geçmiş Bilet takibi özelliği eklendi.
-6. **Engelsiz Erişim (Accessibility):**
-   - Yaşlı ve engelli müşterilerimiz için erişilebilirlik odaklı "Müşteri Önceliği" bildirim sistemi entegre edildi.
-7. **Turkcell Anten Loader:**
+6. **Turkcell Anten Loader:**
    - Standart yükleme ikonları yerine Turkcell'e özgü CSS bazlı dönen "Anten" logosu geliştirildi.
+
+---
+
+## 🏆 Bonus & Accessibility Features (Final Boss)
+
+Projenin profesyonelliğini en üst noktaya taşıyan ve Jürileri etkileyecek vizyonel bonus eklentiler kodlandı:
+
+1. **Accessibility Toggle (Öncelikli Sıra Erişimi):**
+   - `BranchDetailPage` içerisinde `Accessibility` ikonu ile "Engelsiz Erişim / Yaşlı Önceliği Desteği İstiyorum" checkbox'ı konuldu.
+2. **Smart Toast Notifications (Akıllı Bildirimler):**
+   - Kullanıcının önünde 2 kişiden az kaldığında tetiklenen, göz alıcı sarı konseptli Titreşim/Pulse etkisine sahip "Sıranız Yaklaşıyor!" canlı alerti entegre edildi.
+3. **Post-Service Feedback (NPS Sistemi):**
+   - İşlemi biten (`DONE`) kullanıcıların anında önüne düşen "Hizmetimizi Puanlayın" isimli, tam sayfa Glassmorphism yıldız değerlendirme Modal statüleri kuruldu.
+4. **Visual Density Badges (Yoğunluk Göstergesi):**
+   - Şubedeki anlık `waiting_count` değerine göre Canlı Harita listesinde "Sakin" (Yeşil), "Normal" (Sarı) ve "Çok Yoğun" (Kırmızı) şeklinde anlamsal badge mantığı çalıştırıldı.
 
 ---
 
