@@ -28,7 +28,7 @@ export const BranchListPage = () => {
         queryKey: ['branches'],
         queryFn: async () => {
             const res = await api.get('/branches');
-            return res.data;
+            return res.data?.data || res.data;
         },
         refetchInterval: 30_000,
     });

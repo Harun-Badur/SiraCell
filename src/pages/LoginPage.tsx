@@ -2,7 +2,7 @@ import { useState, type KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Phone, KeyRound, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
 
-const DEMO_OTP = '1234';
+import api from '../api/axiosInstance';
 
 export const LoginPage = () => {
     const [gsmRaw, setGsmRaw] = useState('');
@@ -27,26 +27,43 @@ export const LoginPage = () => {
         setGsmRaw(val);
     };
 
+    const fullGsm = `0${gsmRaw}`;
+
     const handleContinue = async () => {
         if (gsmRaw.length < 10) return;
         setError('');
         setLoading(true);
-        await new Promise((r) => setTimeout(r, 600)); // Simulate API
-        setLoading(false);
-        setStep(2);
+        try {
+            await api.post('/auth/register', { phone_number: fullGsm });
+            setStep(2);
+        } catch (err: any) {
+            setError(err.response?.data?.detail || 'Kayıt işlemi başarısız oldu.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleLogin = async () => {
         if (otp.length < 4) return;
         setError('');
         setLoading(true);
-        await new Promise((r) => setTimeout(r, 600));
-        setLoading(false);
-        if (otp === DEMO_OTP) {
-            localStorage.setItem('token', 'demo-jwt-token');
-            navigate('/');
-        } else {
-            setError(`Hatalı kod. Demo için: ${DEMO_OTP}`);
+        try {
+            const res = await api.post('/auth/verify-otp', { phone_number: fullGsm, otp_code: otp });
+            // Assuming response contains access_token and refresh_token
+            const data = res.data.data || res.data;
+            if (data.access_token) {
+                localStorage.setItem('token', data.access_token);
+                if (data.refresh_token) {
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                }
+                navigate('/');
+            } else {
+                setError('Geçersiz token alındı.');
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.detail || 'Hatalı kod girdiniz.');
+        } finally {
+            setLoading(false);
         }
     };
 

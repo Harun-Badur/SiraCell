@@ -26,8 +26,17 @@ export const MyTicketPage = () => {
     const { data: ticket, isLoading, isError } = useQuery<QueueTicket>({
         queryKey: ['my-ticket', ticketId],
         queryFn: async () => {
-            const res = await api.get(`/queue/ticket/${ticketId}`);
-            return res.data;
+            const res = await api.get(`/queue/my-ticket`);
+            const data = res.data?.data || res.data;
+            return {
+                ...data,
+                aheadOfMe: data.ahead_of_me ?? data.aheadOfMe,
+                estimatedWaitTime: data.estimated_wait_time ?? data.estimatedWaitTime,
+                ticketNumber: data.ticket_number ?? data.ticketNumber,
+                serviceType: data.service_type ?? data.serviceType,
+                status: data.status,
+                id: data.id,
+            };
         },
         refetchInterval: (query) => isFinalStatus(query.state.data?.status) ? false : 3000,
         refetchIntervalInBackground: true,

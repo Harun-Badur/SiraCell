@@ -46,8 +46,8 @@ export const BranchDetailPage = () => {
     const { data: branch, isLoading: branchLoading } = useQuery<BranchDetail>({
         queryKey: ['branch', id],
         queryFn: async () => {
-            const res = await api.get(`/branches/${id}`);
-            return res.data;
+            const res = await api.get(`/branches/${id}/status`);
+            return res.data?.data || res.data;
         },
     });
 
@@ -55,8 +55,8 @@ export const BranchDetailPage = () => {
     const { data: serviceTypes, isLoading: servicesLoading } = useQuery<ServiceType[]>({
         queryKey: ['service-types', id],
         queryFn: async () => {
-            const res = await api.get(`/branches/${id}/service-types`);
-            return res.data;
+            const res = await api.get(`/branches/${id}/services`);
+            return res.data?.data || res.data;
         },
     });
 
@@ -66,12 +66,12 @@ export const BranchDetailPage = () => {
             const loadingToastId = toast.loading('Biletiniz Hazırlanıyor...');
             try {
                 const res = await api.post('/queue/join', {
-                    branchId: id,
-                    serviceTypeId: selectedService,
-                    isPriority, // priority flag for backend to handle visually or physically
+                    branch_id: id,
+                    service_type_id: selectedService,
+                    is_priority: isPriority,
                 });
                 toast.dismiss(loadingToastId);
-                return res.data;
+                return res.data?.data || res.data;
             } catch (err) {
                 toast.dismiss(loadingToastId);
                 throw err;

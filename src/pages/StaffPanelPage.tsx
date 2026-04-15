@@ -1,43 +1,108 @@
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import api from '../api/axiosInstance';
-import { UserCheck, CheckCircle2, UserMinus, Power, BarChart3, Clock, Loader2, Navigation, Users } from 'lucide-react';
+import { UserCheck, CheckCircle2, UserMinus, Power, BarChart3, Clock, Loader2, Navigation, Users, Settings } from 'lucide-react';
 import { toast } from '../components/Feedback';
 
 interface ActiveTicket { ticket_number: string; service_type: string; user_gsm?: string; }
 
+// Use localStorage to persist setup state
+const getStorageString = (key: string, def: string) => localStorage.getItem(key) || def;
+
 export const StaffPanelPage = () => {
     const queryClient = useQueryClient();
+    
+    // Setup State
+    const [branchId, setBranchId] = useState(() => getStorageString('staff_branch_id', 'branch-1'));
+    const [counterId, setCounterId] = useState(() => getStorageString('staff_counter_id', '1'));
+    const [serviceTypeId, setServiceTypeId] = useState(() => getStorageString('staff_service_type_id', 'serv-1'));
+    const [showSetup, setShowSetup] = useState(false);
+
+    useEffect(() => {
+        localStorage.setItem('staff_branch_id', branchId);
+        localStorage.setItem('staff_counter_id', counterId);
+        localStorage.setItem('staff_service_type_id', serviceTypeId);
+    }, [branchId, counterId, serviceTypeId]);
+
     const [activeTicket, setActiveTicket] = useState<ActiveTicket | null>(null);
     const [isCounterOpen, setIsCounterOpen] = useState(true);
 
+    // Call Next Customer (POST /counter/call-next?counter_id=&service_type_id=)
     const callNextMutation = useMutation<ActiveTicket>({
-        mutationFn: async () => (await api.post('/counter/call-next')).data,
+        mutationFn: async () => {
+            const res = await api.post(`/counter/call-next?counter_id=${counterId}&service_type_id=${serviceTypeId}`);
+            return res.data?.data || res.data;
+        },
         onSuccess: (data) => { 
             setActiveTicket(data); 
-            queryClient.invalidateQueries({ queryKey: ['staff-stats'] }); 
+            queryClient.invalidateQueries({ queryKey: ['staff-stats', branchId] }); 
             toast.success('Sıradaki müşteri çağrıldı.');
         },
     });
 
+    // Complete or No Show Customer
     const updateStatusMutation = useMutation<void, Error, 'complete' | 'no-show'>({
         mutationFn: async (action) => { await api.patch(`/counter/${action}`); },
-        onSuccess: () => { setActiveTicket(null); queryClient.invalidateQueries({ queryKey: ['staff-stats'] }); },
+        onSuccess: () => { 
+            setActiveTicket(null); 
+            queryClient.invalidateQueries({ queryKey: ['staff-stats', branchId] }); 
+        },
     });
 
+    // Toggle Counter Status
     const toggleMutation = useMutation<void, Error, boolean>({
-        mutationFn: async (open) => { await api.patch('/counter/toggle', { is_active: open }); },
+        mutationFn: async (open) => { 
+            await api.patch(`/counter/${counterId}/toggle`, { is_active: open }); 
+        },
         onSuccess: (_, open) => setIsCounterOpen(open),
     });
+
+    // Fetch Stats using /counter/queue/{branch_id}
+    const { data: stats } = useQuery({
+        queryKey: ['staff-stats', branchId],
+        queryFn: async () => {
+            const res = await api.get(`/counter/queue/${branchId}`);
+            return res.data?.data || res.data;
+        },
+        refetchInterval: 5000
+    });
+
+    // Fallbacks if stats return an array or object
+    const queueCount = stats?.queue_length ?? stats?.length ?? 0;
+    const totalServed = stats?.total_served ?? 0;
+    const avgTime = stats?.avg_time ?? 0;
 
     return (
         <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto bg-slate-50 min-h-[calc(100vh-64px)] animate-fade-up">
             
+            {/* Setup Panel Toggle */}
+            <button onClick={() => setShowSetup(!showSetup)} className="flex items-center gap-2 text-slate-500 font-bold hover:text-darkblue transition-colors text-sm">
+                <Settings size={16} /> Kurulum & Ayarlar
+            </button>
+
+            {/* Config Panel */}
+            {showSetup && (
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Şube ID</label>
+                        <input value={branchId} onChange={e => setBranchId(e.target.value)} className="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 font-bold text-darkblue outline-none focus:border-turkcell" />
+                    </div>
+                    <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Gişe ID</label>
+                        <input value={counterId} onChange={e => setCounterId(e.target.value)} className="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 font-bold text-darkblue outline-none focus:border-turkcell" />
+                    </div>
+                    <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Servis Tipi ID</label>
+                        <input value={serviceTypeId} onChange={e => setServiceTypeId(e.target.value)} className="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 font-bold text-darkblue outline-none focus:border-turkcell" />
+                    </div>
+                </div>
+            )}
+
             {/* Header Card */}
             <div className="flex justify-between items-center bg-darkblue p-6 rounded-[2rem] text-white shadow-tc-lg border-b-4 border-turkcell relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-8 opacity-5"><BarChart3 size={120} /></div>
                 <div className="relative z-10">
-                    <h2 className="font-black text-3xl tracking-tight text-white">GİŞE 04</h2>
+                    <h2 className="font-black text-3xl tracking-tight text-white">GİŞE {counterId.length > 3 ? '*' : counterId}</h2>
                     <div className="flex items-center gap-2 mt-1 opacity-80">
                         <Navigation size={14} className="text-turkcell" />
                         <span className="text-xs font-bold uppercase tracking-widest text-turkcell">Personel Konsolu</span>
@@ -75,23 +140,25 @@ export const StaffPanelPage = () => {
                     </button>
 
                     {callNextMutation.isError && (
-                        <div className="text-center bg-rose-100 text-rose-700 py-3 rounded-2xl font-bold border border-rose-200">Bekleyen müşteri yok veya gişe kapalı.</div>
+                        <div className="text-center bg-rose-100 text-rose-700 py-3 rounded-2xl font-bold border border-rose-200">
+                            İşlem başarısız veya bekleyen müşteri yok.
+                        </div>
                     )}
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col items-center gap-2">
                             <div className="p-3 bg-darkblue/10 text-darkblue rounded-xl"><BarChart3 size={24} strokeWidth={2.5} /></div>
-                            <span className="text-3xl font-black text-darkblue leading-none mt-2">42</span>
+                            <span className="text-3xl font-black text-darkblue leading-none mt-2">{totalServed}</span>
                             <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Toplam Hizmet</span>
                         </div>
                         <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col items-center gap-2">
                             <div className="p-3 bg-turkcell/20 text-turkcell rounded-xl"><Clock size={24} strokeWidth={2.5} /></div>
-                            <span className="text-3xl font-black text-darkblue leading-none mt-2">4.5</span>
+                            <span className="text-3xl font-black text-darkblue leading-none mt-2">{avgTime}</span>
                             <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Ort. İşlem (Dk)</span>
                         </div>
                         <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col items-center gap-2">
                             <div className="p-3 bg-rose-50 text-rose-500 rounded-xl"><Users size={24} strokeWidth={2.5} /></div>
-                            <span className="text-3xl font-black text-darkblue leading-none mt-2">8</span>
+                            <span className="text-3xl font-black text-darkblue leading-none mt-2">{queueCount}</span>
                             <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Sıradaki Bekleyen</span>
                         </div>
                     </div>
