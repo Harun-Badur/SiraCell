@@ -27,6 +27,14 @@ export const LoginPage = () => {
         setGsmRaw(val);
     };
 
+    const normalizePhone = (input: string) => {
+        let digits = input.replace(/\D/g, '');
+        if (digits.length >= 10) {
+            digits = digits.slice(-10);
+        }
+        return `+90${digits}`;
+    };
+
     const fullGsm = `0${gsmRaw}`;
 
     const handleContinue = async () => {
@@ -34,10 +42,11 @@ export const LoginPage = () => {
         setError('');
         setLoading(true);
         try {
-            await api.post('/auth/register', { phone_number: fullGsm });
+            await api.post('/auth/register', { phone: normalizePhone(gsmRaw), full_name: 'Müşteri' });
             setStep(2);
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Kayıt işlemi başarısız oldu.');
+            const detail = err.response?.data?.message || err.response?.data?.detail;
+            setError(typeof detail === 'string' ? detail : 'Kayıt işlemi başarısız oldu.');
         } finally {
             setLoading(false);
         }
@@ -48,7 +57,7 @@ export const LoginPage = () => {
         setError('');
         setLoading(true);
         try {
-            const res = await api.post('/auth/verify-otp', { phone_number: fullGsm, otp_code: otp });
+            const res = await api.post('/auth/verify-otp', { phone: normalizePhone(gsmRaw), code: otp });
             // Assuming response contains access_token and refresh_token
             const data = res.data.data || res.data;
             if (data.access_token) {
@@ -56,12 +65,14 @@ export const LoginPage = () => {
                 if (data.refresh_token) {
                     localStorage.setItem('refresh_token', data.refresh_token);
                 }
-                navigate('/');
+                // Token localStorage'a yazıldı, tam sayfa reload ile güvenli geçiş
+                window.location.href = '/';
             } else {
                 setError('Geçersiz token alındı.');
             }
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Hatalı kod girdiniz.');
+            const detail = err.response?.data?.message || err.response?.data?.detail;
+            setError(typeof detail === 'string' ? detail : 'Hatalı kod girdiniz.');
         } finally {
             setLoading(false);
         }

@@ -60,38 +60,97 @@ export const BranchDetailPage = () => {
         },
     });
 
-    // Sıraya katıl (POST /queue/join)
     const joinMutation = useMutation({
         mutationFn: async () => {
             const loadingToastId = toast.loading('Biletiniz Hazırlanıyor...');
             try {
                 const res = await api.post('/queue/join', {
-                    branch_id: id,
-                    service_type_id: selectedService,
-                    is_priority: isPriority,
+                    branch_id: Number(id),
+                    service_type_id: Number(selectedService)
                 });
                 toast.dismiss(loadingToastId);
                 return res.data?.data || res.data;
-            } catch (err) {
+            } catch (err: any) {
                 toast.dismiss(loadingToastId);
+                if (err.response) {
+                    const status = err.response.status;
+                    const detail = err.response.data?.message || err.response.data?.detail;
+                    const msg = typeof detail === 'string' ? detail : JSON.stringify(detail);
+                    
+                    if (status === 409) {
+                        toast.error('Zaten aktif bir biletiniz var, bilete yönlendiriliyorsunuz.');
+                        // Check if ticket data is in the response to navigate directly
+                        setTimeout(() => navigate('/my-ticket/active'), 1500); 
+                        throw err; // throw so isError is set, but toast handles UX
+                    } else if (status === 403) {
+                        toast.error('Bu işlem müşteri hesabıyla yapılabilir.');
+                        throw err;
+                    } else if (status === 422) {
+                        toast.error(`Doğrulama Hatası: ${msg}`);
+                        throw err;
+                    } else {
+                        toast.error(msg || 'Sıraya katılırken hata oluştu.');
+                        throw err;
+                    }
+                }
+                toast.error('Sıraya katılırken bir hata oluştu. Lütfen tekrar deneyin.');
                 throw err;
             }
         },
         onSuccess: (data) => {
-            setTicketId(data.id);
+            const tId = data.id || 'active';
+            setTicketId(tId);
             setJoinSuccess(true);
-            toast.success(`Sıra Alındı! Numaranız: ${data.ticketNumber || data.id}`);
+            toast.success(`Sıra Alındı! Numaranız: ${data.ticket_number || data.ticketNumber || tId}`);
+            setTimeout(() => navigate(`/my-ticket/${tId}`), 1500);
         },
     });
 
     const isLoading = branchLoading || servicesLoading;
     const waitTime = branch ? calcWaitTime(branch.waitingCount ?? 0, branch.activeCounters ?? 1) : 0;
 
+    const { data: activeTicket } = useQuery({
+        queryKey: ['my-ticket', 'active'],
+        queryFn: async () => {
+            try {
+                const res = await api.get('/queue/my-ticket');
+                return res.data?.data || res.data;
+            } catch { return null; }
+        }
+    });
+
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] gap-3 bg-gray-50">
                 <TurkcellSpinner size={48} />
                 <p className="text-[#002855] font-semibold">Şube bilgileri yükleniyor...</p>
+            </div>
+        );
+    }
+
+    const ACTIVE_STATUSES = ['WAITING', 'CALLED', 'IN_SERVICE'];
+    if (activeTicket?.id && ACTIVE_STATUSES.includes(activeTicket.status) && !joinSuccess) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] bg-slate-50 p-6">
+                <div className="bg-white rounded-[40px] p-10 shadow-tc-xl border-4 border-[#ffcc00] text-center max-w-sm w-full space-y-6">
+                    <div className="flex justify-center">
+                        <div className="bg-yellow-50 p-5 rounded-full mb-2">
+                            <Clock size={64} className="text-[#ffcc00]" />
+                        </div>
+                    </div>
+                    <h2 className="text-2xl font-black text-darkblue">Aktif Biletiniz Var</h2>
+                    <p className="text-slate-500 font-medium text-sm">Zaten sırada bekleyen aktif bir biletiniz bulunuyor. Aynı anda birden fazla sıraya giremezsiniz.</p>
+                    <button
+                        onClick={() => navigate(`/my-ticket/${activeTicket.id || 'active'}`)}
+                        className="w-full bg-darkblue text-white font-bold py-4 rounded-2xl hover:bg-[#003a7a] transition-all flex items-center justify-center gap-2 shadow-md active:scale-95"
+                    >
+                        <TicketCheck size={20} />
+                        Mevcut Biletime Git
+                    </button>
+                    {activeTicket.status === 'WAITING' && (
+                        <p className="text-xs text-slate-400 mt-2">Biletinizi iptal etmek isterseniz bilet detayından silebilirsiniz.</p>
+                    )}
+                </div>
             </div>
         );
     }
@@ -243,7 +302,7 @@ export const BranchDetailPage = () => {
 
                 {joinMutation.isError && (
                     <p className="text-center text-red-500 text-sm mt-3 font-semibold">
-                        Sıraya katılırken bir hata oluştu. Lütfen tekrar deneyin.
+                        İşlem gerçekleştirilemedi. Geçerli hesabınızın rolünü kontrol ediniz.
                     </p>
                 )}
             </div>

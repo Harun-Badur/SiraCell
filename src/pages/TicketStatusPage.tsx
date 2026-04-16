@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axiosInstance';
 import { type QueueTicket } from '../types';
 import { Loader2, ArrowLeft, Clock, Users, Bell, CheckCircle2, TicketX, Zap, TicketSlash, Star } from 'lucide-react';
@@ -20,6 +20,17 @@ const STATUS_CONFIG: Record<QueueTicket['status'], StatusConfig> = {
 export const MyTicketPage = () => {
     const { ticketId } = useParams<{ ticketId: string }>();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
+
+    const cancelMutation = useMutation({
+        mutationFn: async () => await api.delete('/queue/my-ticket'),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-ticket'] });
+            toast.success("Biletiniz isteğiniz üzerine iptal edildi.");
+            navigate('/');
+        },
+        onError: () => toast.error("Bilet iptal edilemedi, hata oluştu.")
+    });
 
     const isFinalStatus = (status?: QueueTicket['status']) => status === 'DONE' || status === 'NO_SHOW';
 
@@ -49,7 +60,7 @@ export const MyTicketPage = () => {
     // Smart Toast: Sıranız Yaklaşıyor
     useEffect(() => {
         if (ticket && ticket.aheadOfMe <= 2 && ticket.aheadOfMe > 0 && !alerted && !isFinalStatus(ticket.status) && ticket.status !== 'CALLED') {
-            toast.custom((t) => (
+            toast.custom((t: any) => (
                 <div className={`${t.visible ? 'animate-bounce-in' : 'animate-fade-out'} bg-[#ffcc00] text-[#002855] px-6 py-4 rounded-3xl shadow-tc-xl font-black flex items-center gap-3 border-2 border-white`}>
                    <Bell size={24} className="animate-pulse" />
                    Sıranız Yaklaşıyor!
@@ -149,6 +160,18 @@ export const MyTicketPage = () => {
                         </div>
                     </div>
                 </div>
+
+                {ticket.status === 'WAITING' && (
+                    <div className="flex justify-center -mt-2 mb-2 z-20">
+                        <button 
+                            onClick={() => { if(window.confirm('Biletinizi iptal etmek istediğinize emin misiniz?')) cancelMutation.mutate() }}
+                            disabled={cancelMutation.isPending}
+                            className="text-rose-500 font-bold text-sm bg-white/60 backdrop-blur-sm px-6 py-2 rounded-xl hover:bg-rose-100 transition-colors shadow-sm cursor-pointer disabled:opacity-50 inline-flex"
+                        >
+                            {cancelMutation.isPending ? 'İptal Ediliyor...' : 'Bileti İptal Et'}
+                        </button>
+                    </div>
+                )}
 
                 {/* Dynamic Content below ticket */}
                 <div className="mt-8 flex flex-col gap-4">

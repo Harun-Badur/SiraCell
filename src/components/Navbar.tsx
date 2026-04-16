@@ -7,7 +7,9 @@ export const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    navigate('/login');
+    localStorage.removeItem('refresh_token');
+    // We use window.location.href instead of navigate to completely wipe React Query cache and application state
+    window.location.href = '/login';
   };
 
   return (

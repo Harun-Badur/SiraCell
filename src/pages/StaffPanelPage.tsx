@@ -4,7 +4,7 @@ import api from '../api/axiosInstance';
 import { UserCheck, CheckCircle2, UserMinus, Power, BarChart3, Clock, Loader2, Navigation, Users, Settings } from 'lucide-react';
 import { toast } from '../components/Feedback';
 
-interface ActiveTicket { ticket_number: string; service_type: string; user_gsm?: string; }
+interface ActiveTicket { id: number; ticket_number: string; service_type: string; user_gsm?: string; status?: string; }
 
 // Use localStorage to persist setup state
 const getStorageString = (key: string, def: string) => localStorage.getItem(key) || def;
@@ -12,10 +12,10 @@ const getStorageString = (key: string, def: string) => localStorage.getItem(key)
 export const StaffPanelPage = () => {
     const queryClient = useQueryClient();
     
-    // Setup State
-    const [branchId, setBranchId] = useState(() => getStorageString('staff_branch_id', 'branch-1'));
-    const [counterId, setCounterId] = useState(() => getStorageString('staff_counter_id', '1'));
-    const [serviceTypeId, setServiceTypeId] = useState(() => getStorageString('staff_service_type_id', 'serv-1'));
+    // Setup State - counter_id=3 (Gise 3) is used as default because it supports ALL service types (1,2,3,4)
+    const [branchId, setBranchId] = useState(() => getStorageString('staff_branch_id', '1'));
+    const [counterId, setCounterId] = useState(() => getStorageString('staff_counter_id', '3'));
+    const [serviceTypeId, setServiceTypeId] = useState(() => getStorageString('staff_service_type_id', '2'));
     const [showSetup, setShowSetup] = useState(false);
 
     useEffect(() => {
@@ -28,9 +28,11 @@ export const StaffPanelPage = () => {
     const [isCounterOpen, setIsCounterOpen] = useState(true);
 
     // Call Next Customer (POST /counter/call-next?counter_id=&service_type_id=)
-    const callNextMutation = useMutation<ActiveTicket>({
+    const callNextMutation = useMutation<ActiveTicket, Error>({
         mutationFn: async () => {
-            const res = await api.post(`/counter/call-next?counter_id=${counterId}&service_type_id=${serviceTypeId}`);
+            const cId = Number(counterId) || 1;
+            const sId = Number(serviceTypeId) || 1;
+            const res = await api.post(`/counter/call-next?counter_id=${cId}&service_type_id=${sId}`);
             return res.data?.data || res.data;
         },
         onSuccess: (data) => { 
@@ -38,21 +40,47 @@ export const StaffPanelPage = () => {
             queryClient.invalidateQueries({ queryKey: ['staff-stats', branchId] }); 
             toast.success('Sıradaki müşteri çağrıldı.');
         },
+        onError: (err: any) => {
+            const detail = err?.response?.data?.message || err?.response?.data?.detail;
+            if (detail === 'Counter is not active') {
+                setIsCounterOpen(false);
+                toast.error('Uyarı: Gişe sistemde kapalı göründüğü için çağrı iptal edildi. Lütfen gişeyi aktif hale getirin.');
+            }
+        }
     });
 
     // Complete or No Show Customer
     const updateStatusMutation = useMutation<void, Error, 'complete' | 'no-show'>({
-        mutationFn: async (action) => { await api.patch(`/counter/${action}`); },
+        mutationFn: async (action) => { 
+            const tId = activeTicket?.id;
+            if (!tId) throw new Error("Aktif bilet bulunamadı.");
+            
+            // Backend state machine requires IN_SERVICE before DONE.
+            if (action === 'complete') {
+                try {
+                    await api.post(`/counter/start-service/${tId}`);
+                } catch (e: any) {
+                    if (e?.response?.status !== 400) throw e;
+                }
+            }
+            
+            await api.patch(`/counter/${action}?ticket_id=${tId}`); 
+        },
         onSuccess: () => { 
             setActiveTicket(null); 
             queryClient.invalidateQueries({ queryKey: ['staff-stats', branchId] }); 
         },
+        onError: (err: any) => {
+            const detail = err?.response?.data?.message || err?.response?.data?.detail;
+            toast.error(typeof detail === 'string' ? detail : 'İşlem başarısız.');
+        }
     });
 
     // Toggle Counter Status
     const toggleMutation = useMutation<void, Error, boolean>({
         mutationFn: async (open) => { 
-            await api.patch(`/counter/${counterId}/toggle`, { is_active: open }); 
+            const cId = Number(counterId) || 1;
+            await api.patch(`/counter/${cId}/toggle`, { is_active: open }); 
         },
         onSuccess: (_, open) => setIsCounterOpen(open),
     });
@@ -61,7 +89,8 @@ export const StaffPanelPage = () => {
     const { data: stats } = useQuery({
         queryKey: ['staff-stats', branchId],
         queryFn: async () => {
-            const res = await api.get(`/counter/queue/${branchId}`);
+            const bId = Number(branchId) || 1;
+            const res = await api.get(`/counter/queue/${bId}`);
             return res.data?.data || res.data;
         },
         refetchInterval: 5000
@@ -141,7 +170,11 @@ export const StaffPanelPage = () => {
 
                     {callNextMutation.isError && (
                         <div className="text-center bg-rose-100 text-rose-700 py-3 rounded-2xl font-bold border border-rose-200">
-                            İşlem başarısız veya bekleyen müşteri yok.
+                            {(() => {
+                                const err: any = callNextMutation.error;
+                                const detail = err?.response?.data?.message || err?.response?.data?.detail;
+                                return typeof detail === 'string' ? detail : 'İşlem başarısız veya bekleyen müşteri yok.';
+                            })()}
                         </div>
                     )}
 
